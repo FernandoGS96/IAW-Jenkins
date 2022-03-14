@@ -1,0 +1,39 @@
+version: "3"
+services:
+  servidorweb:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    command: chmod a+rxw /var/www/html
+    command: chmod a+rxw /var/log/apache2
+    volumes:
+      - /home/andres/despliegue/wp:/var/www/html
+      - /home/andres/despliegue/apache/logs:/var/log/apache2
+    depends_on:
+      - "bbdd"
+
+  bbdd:
+    image: mysql:5.6
+    restart: always
+    environment:
+      MYSQL_DATABASE: wp_db
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_PORT: 3306
+    volumes:
+      - /home/andres/despliegue/.db_data:/var/lib/mysql
+      - /home/andres/despliegue/.db_backup:/docker-entrypoint-initdb.d
+    ports:
+      - 3306:3306
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    environment:
+      PMA_HOST: "mysql"
+      PMA_USER: "root"
+      PMA_PASSWORD: "secret"
+    depends_on:
+      - "bbdd"
+    ports:
+      - "8081:80"
